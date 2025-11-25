@@ -28,7 +28,7 @@ if (-not $cloudUser) {
 # 4. Compare and update if needed
 if ($cloudUser.OnPremisesImmutableId -ne $immutableId) {
     Write-Host "Updating cloud user $userUPN with OnPremisesImmutableId = $immutableId"
-    Update-MgUser -UserId $cloudUser.Id -OnPremisesImmutableId $immutableId
+    Update-MgUser -UserId $cloudUser -OnPremisesImmutableId $immutableId
 }
 else {
     Write-Host "Cloud user already has matching OnPremisesImmutableId"
