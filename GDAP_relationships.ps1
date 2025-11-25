@@ -1,36 +1,56 @@
-# Pre-req: Connect to Graph in partner tenant context
-Connect-MgGraph -Scopes "RoleManagement.ReadDirectory.All","TenantRelationships.Read.All"
+<#
+.SYNOPSIS
+  Export GDAP / Delegated Admin Relationships + Role Mappings for Partner Tenant.
 
-# Get all GDAP relationships (delegated admin relationships)
-$relationships = Invoke-MgGraphRequest -Method GET -Uri "https://graph.microsoft.com/v1.0/tenantRelationships/delegatedAdminRelationships"
+.DESCRIPTION
+  Connects to Microsoft Graph in the partner tenant, retrieves all active delegated admin relationships,
+  then for each relationship retrieves the role assignments (security groups → roles) and exports to CSV.
 
-$relList = $relationships.value | ForEach-Object {
-    [pscustomobject]@{
-        CustomerId       = $_.customerId
-        DisplayName      = $_.displayName
-        RelationshipId   = $_.id
-        Status           = $_.status
-        StartDate        = $_.startDateTime
-        EndDate          = $_.endDateTime
-        AutoExtend       = $_.autoRenew
-    }
+.NOTES
+  Modify output path, filter logic or extension to Excel/Word as needed.
+#>
+
+# PARAMETERS
+$ExportPath = "C:\Temp\GDAP_RoleMappings.csv"
+
+# Connect (if not already connected)
+if (-not (Get-MgContext)) {
+    Write-Host "Connecting to Microsoft Graph..."
+    Connect-MgGraph -Scopes @("DelegatedAdminRelationship.Read.All","Directory.Read.All")
 }
 
-# For each relationship, get access assignments (which roles/groups)
+# Get all delegated admin relationships
+$relList = Get-MgTenantRelationshipDelegatedAdminRelationship -All | Where-Object { $_.status -eq "active" }
+
+$results = @()
+
 foreach ($rel in $relList) {
-    $assignments = Invoke-MgGraphRequest -Method GET -Uri "https://graph.microsoft.com/v1.0/tenantRelationships/delegatedAdminRelationships/$($rel.RelationshipId)/accessAssignments?`$expand=principal,roleDefinition"
-    foreach ($asgn in $assignments.value) {
-        [pscustomobject]@{
-            CustomerId     = $rel.CustomerId
-            RelationshipId = $rel.RelationshipId
-            RoleName       = $asgn.roleDefinition.displayName
-            RoleId         = $asgn.roleDefinition.id
-            PrincipalName  = $asgn.principal.displayName
-            PrincipalType  = $asgn.principal.@odata.type
-            AssignmentId   = $asgn.id
+    Write-Host "Processing relationship: $($rel.displayName) (ID: $($rel.id))"
+
+    # Get access assignments for this relationship
+    $assignments = Invoke-MgGraphRequest -Method GET -Uri "https://graph.microsoft.com/v1.0/tenantRelationships/delegatedAdminRelationships/$($rel.id)/accessAssignments?`$expand=principal,roleDefinition" |
+                   Select-Object -ExpandProperty value
+
+    foreach ($asgn in $assignments) {
+        $results += [pscustomobject]@{
+            CustomerTenantId   = $rel.customer.tenantId
+            CustomerName       = $rel.customer.displayName
+            RelationshipName   = $rel.displayName
+            RelationshipId     = $rel.id
+            RoleName           = $asgn.roleDefinition.displayName
+            RoleId             = $asgn.roleDefinition.id
+            SecurityGroupName  = $asgn.principal.displayName
+            SecurityGroupId    = $asgn.principal.id
+            AssignmentId       = $asgn.id
+            Status             = $asgn.status
+            CreatedDateTime    = $asgn.createdDateTime
+            LastModifiedDateTime = $asgn.lastModifiedDateTime
         }
     }
 }
 
-# Export to CSV for documentation
-$relList | Export-Csv -Path "GDAP_Relationships.csv" -NoTypeInformation
+# Export results
+$results | Export-Csv -Path $ExportPath -NoTypeInformation -Encoding UTF8
+
+Write-Host "Export complete. File saved to: $ExportPath"
+
