@@ -1,0 +1,22 @@
+// First find the device by serial from your inventory table
+let DeviceSerialToAAD =
+    IntuneDevices
+    | where SerialNumber =~ "YOUR-SERIAL-HERE"
+    | project AADDeviceId = tostring(AzureADDeviceId), SerialNumber;
+// Then see if that device has appeared in Entra sign-ins
+SigninLogs
+| join kind=inner DeviceSerialToAAD on $left.DeviceId == $right.AADDeviceId
+| project TimeGenerated, UserPrincipalName, AppDisplayName, IPAddress, DeviceId, SerialNumber
+| order by TimeGenerated desc
+
+
+
+IntuneDevices
+| where isnotempty(SerialNumber)
+| where SerialNumber =~ "YOUR-SERIAL-HERE"
+
+
+DeviceInfo
+| where isnotempty(DeviceSerialNumber)
+| where DeviceSerialNumber =~ "YOUR-SERIAL-HERE"
+
