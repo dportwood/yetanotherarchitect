@@ -25,3 +25,14 @@ AzureActivity
 | where ActivityStatus == "Succeeded"
 | project TimeGenerated, Caller
 | sort by TimeGenerated asc
+
+
+let start_time = ago(30d);  // change this to your desired window
+let end_time = now();
+Heartbeat
+| where TimeGenerated between (start_time .. end_time)
+| summarize HeartbeatCount=count() by Computer
+| extend TotalHours = datetime_diff('hour', end_time, start_time)
+| extend AvailableHours = HeartbeatCount * 1m / 60  // if heartbeat every 1 min
+| extend UptimePercent = round(AvailableHours * 100.0 / TotalHours, 2)
+| project Computer, AvailableHours, TotalHours, UptimePercent
