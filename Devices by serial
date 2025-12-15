@@ -20,3 +20,8 @@ DeviceInfo
 | where isnotempty(DeviceSerialNumber)
 | where DeviceSerialNumber =~ "YOUR-SERIAL-HERE"
 
+AzureActivity
+| where ResourceId contains "<resource-id>"
+| where ActivityStatus == "Succeeded"
+| project TimeGenerated, Caller
+| sort by TimeGenerated asc
