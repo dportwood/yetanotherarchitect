@@ -1,0 +1,21 @@
+
+Resource naming
+
+<BU> -	Business unit or company	contoso, fin, hr
+<MGMT> -	Management scope / service domain	it, ops, sec
+<ENV>	- Environment	dev, test, qa, prod
+<REG>	- Azure Region short code	eastus2, westeurope
+<RTYPE>	- Azure resource type abbreviation	vm, rg, vnet, stg
+<APP/TIER> - Application, project, or tier	appapi, backend, db
+<NNN>	- Instance or sequence number	001, 002
+
+Resource Tagging
+
+BusinessUnit- Owner business unit or company	- Contoso
+MgmtScope	- Management or operational domain	- IT, Security
+Env	- Deployment environment	- Prod, Dev, Test
+CostCenter - Chargeback / billing identifier	- CC12345
+ProductOwner -Stakeholder or team responsible	- AppPlatformTeam
+DataSensitivity	- Data classification for compliance -	Confidential, Public
+CreatedBy	- who	- email
+Backup Required	- Yes or No -	Y/N
