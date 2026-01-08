@@ -1,6 +1,6 @@
 # Install Microsoft Graph modules if not already installed
-Install-Module Microsoft.Graph.Identity.SignIns -Scope AllUsers -Force
-Install-Module Microsoft.Graph -Scope AllUsers -Force
+Install-Module Microsoft.Graph.Identity.SignIns -Scope CurrentUser -Force
+Install-Module Microsoft.Graph -Scope CurrentUser -Force
 
 # Connect to Microsoft Graph
 $Scopes = @(
