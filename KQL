@@ -1,0 +1,27 @@
+AuditLogs
+| where isnotempty(deviceDetail.deviceName)
+| where deviceDetail.deviceName == "YOUR_DEVICE_NAME"
+| project TimeGenerated, OperationName, TargetResources, Actor, Result
+| sort by TimeGenerated desc
+
+
+DeviceComplianceLogs
+| where DeviceName == "YOUR_DEVICE_NAME"
+| project TimeGenerated, DeviceId, ComplianceState, OSPlatform, PolicyName
+| sort by TimeGenerated desc
+
+
+DeviceEvents
+| where DeviceName == "YOUR_DEVICE_NAME"
+| sort by TimeGenerated desc
+
+let device = "YOUR_DEVICE_NAME";
+SigninLogs
+| where deviceDetail.deviceName == device
+| project TimeGenerated, UserPrincipalName, IPAddress, Activity = "SignIn"
+| union (
+    DeviceEvents
+    | where DeviceName == device
+    | project TimeGenerated, DeviceId, Activity
+)
+| sort by TimeGenerated desc
