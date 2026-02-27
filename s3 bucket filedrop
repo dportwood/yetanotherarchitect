@@ -1,0 +1,9 @@
+flowchart LR
+  EXT["External Client Systems\n(SFTP / optional AS2)"] --> TF["AWS Transfer Family Server\n(VPC-hosted endpoint recommended)"]
+  TF --> S3L["S3 Landing Bucket\nSSE-KMS enforced\nObject Lock (optional)\nVersioning"]
+  S3L --> GD["GuardDuty Malware Protection for S3\n(scan new uploads)"]
+  GD --> EVB["EventBridge / S3 Events"]
+  EVB --> WF["Step Functions / Lambda Workflow\nvalidate filename/schema\noptional PGP decrypt\nDLP checks"]
+  WF -->|clean| S3C["S3 Clean/Ready Bucket or Prefix"]
+  WF -->|failed/quarantine| S3Q["S3 Quarantine Bucket/Prefix\nrestricted access"]
+  S3C --> DOWN["Downstream:\nEKS ingestion jobs\nSnowflake load (e.g., Snowpipe)\nMongo import pipelines"]
