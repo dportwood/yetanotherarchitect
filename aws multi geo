@@ -1,55 +1,55 @@
 flowchart TB
   subgraph ORG["AWS Organization / Control Tower (Global)"]
     direction TB
-    MGMT["Management Account\n(billing/org root; no workloads)"]
+    MGMT["Management Account (billing/org root; no workloads)"]
 
     subgraph SEC_OU["OU: Security (Core)"]
-      LOG["Log Archive Account\ncentral log storage"]
-      AUD["Audit/Sec Tooling Account\nSecurity Hub / GuardDuty / Config (delegated admin)"]
+      LOG["Log Archive Account central log storage"]
+      AUD["Audit/Sec Tooling Account Security Hub / GuardDuty / Config (delegated admin)"]
     end
 
     subgraph SHARED_OU["OU: Shared Services (Global Control Plane)"]
-      ID["Identity Account\nIAM Identity Center (SSO)"]
-      CICD["CI/CD Tooling Account\npipelines/artifacts"]
-      DNS["Shared DNS/Certs Account\nRoute 53, ACM (as allowed)"]
+      ID["Identity Account IAM Identity Center (SSO)"]
+      CICD["CI/CD Tooling Account pipelines/artifacts"]
+      DNS["Shared DNS/Certs Account Route 53, ACM (as allowed)"]
     end
 
-    POL["Org Guardrails\nSCPs: region allow-lists per OU\nbaseline configs & tagging"]
+    POL["Org Guardrails SCPs: region allow-lists per OU baseline configs & tagging"]
   end
 
   %% ===== EU =====
   subgraph EU_OU["OU: EU (GDPR + Healthcare Boundary)"]
     direction TB
-    EU_NET["EU Networking Account\nVPCs/TGW/endpoints (EU only)"]
-    EU_DROP["EU Ingestion/FileDrop Account\nTransfer Family -> S3 landing (EU)\nclient isolation + governance"]
-    EU_APP1["EU Prod App1 Account\nEKS + app data\n(Mongo/S3/etc.)"]
-    EU_APP2["EU Prod App2 Account\nEKS + app data"]
-    EU_APP3["EU Prod App3 Account\nEKS + app data"]
-    EU_NONPROD["EU NonProd Account(s)\nDev/Test (sanitized data preferred)"]
-    EU_DATA_OPT["EU Data Platform (Optional)\nshared lake/warehouse\nEU-only sharing"]
+    EU_NET["EU Networking Account VPCs/TGW/endpoints (EU only)"]
+    EU_DROP["EU Ingestion/FileDrop Account Transfer Family -> S3 landing (EU) client isolation + governance"]
+    EU_APP1["EU Prod App1 Account EKS + app data (Mongo/S3/etc.)"]
+    EU_APP2["EU Prod App2 Account EKS + app data"]
+    EU_APP3["EU Prod App3 Account EKS + app data"]
+    EU_NONPROD["EU NonProd Account(s) Dev/Test (sanitized data preferred)"]
+    EU_DATA_OPT["EU Data Platform (Optional) shared lake/warehouse EU-only sharing"]
   end
 
   %% ===== US =====
   subgraph US_OU["OU: US (HIPAA/HITRUST Boundary)"]
     direction TB
-    US_NET["US Networking Account\nVPCs/TGW/endpoints (US only)"]
-    US_DROP["US Ingestion/FileDrop Account\nTransfer Family -> S3 landing (US)\nclient isolation + governance"]
-    US_APP1["US Prod App1 Account\nEKS + app data"]
-    US_APP2["US Prod App2 Account\nEKS + app data"]
-    US_APP3["US Prod App3 Account\nEKS + app data"]
-    US_NONPROD["US NonProd Account(s)\nDev/Test (sanitized data preferred)"]
-    US_DATA_OPT["US Data Platform (Optional)\nUS-only sharing"]
+    US_NET["US Networking Account VPCs/TGW/endpoints (US only)"]
+    US_DROP["US Ingestion/FileDrop Account Transfer Family -> S3 landing (US) client isolation + governance"]
+    US_APP1["US Prod App1 Account EKS + app data"]
+    US_APP2["US Prod App2 Account EKS + app data"]
+    US_APP3["US Prod App3 Account EKS + app data"]
+    US_NONPROD["US NonProd Account(s) Dev/Test (sanitized data preferred)"]
+    US_DATA_OPT["US Data Platform (Optional) US-only sharing"]
   end
 
   %% ===== AU =====
   subgraph AU_OU["OU: Australia (Healthcare Boundary)"]
     direction TB
-    AU_NET["AU Networking Account\nVPCs/TGW/endpoints (AU only)"]
-    AU_DROP["AU Ingestion/FileDrop Account\nTransfer Family -> S3 landing (AU)\nclient isolation + governance"]
-    AU_APP1["AU Prod App1 Account\nEKS + app data"]
-    AU_APP2["AU Prod App2 Account\nEKS + app data"]
-    AU_APP3["AU Prod App3 Account\nEKS + app data"]
-    AU_NONPROD["AU NonProd Account(s)\nDev/Test"]
+    AU_NET["AU Networking Account VPCs/TGW/endpoints (AU only)"]
+    AU_DROP["AU Ingestion/FileDrop Account Transfer Family -> S3 landing (AU) client isolation + governance"]
+    AU_APP1["AU Prod App1 Account EKS + app data"]
+    AU_APP2["AU Prod App2 Account EKS + app data"]
+    AU_APP3["AU Prod App3 Account EKS + app data"]
+    AU_NONPROD["AU NonProd Account(s) Dev/Test"]
   end
 
   %% ===== Relationships =====
