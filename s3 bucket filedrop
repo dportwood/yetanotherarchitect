@@ -1,9 +1,19 @@
 flowchart LR
-  EXT["External Client Systems (SFTP / optional AS2)"] --> TF["AWS Transfer Family Server (VPC-hosted endpoint recommended)"]
-  TF --> S3L["S3 Landing Bucket SSE-KMS enforced Object Lock (optional) Versioning"]
-  S3L --> GD["GuardDuty Malware Protection for S3 (scan new uploads)"]
-  GD --> EVB["EventBridge / S3 Events"]
-  EVB --> WF["Step Functions / Lambda Workflow validate filename/schema optional PGP decrypt DLP checks"]
-  WF -->|clean| S3C["S3 Clean/Ready Bucket or Prefix"]
-  WF -->|failed/quarantine| S3Q["S3 Quarantine Bucket/Prefix restricted access"]
-  S3C --> DOWN["Downstream: EKS ingestion jobs Snowflake load (e.g., Snowpipe) Mongo import pipelines"]
+  %% Main ingestion pipeline
+  EXT["External Clients\n(SFTP/AS2/HTTPS)"] --> TF["AWS Transfer Family\n(VPC endpoint recommended)"]
+  TF --> S3L["S3 Landing\nSSE-KMS enforced\n(optional Object Lock)"]
+  S3L --> GD["GuardDuty Malware Protection for S3\n(scan on upload)"]
+  GD --> EVB["S3 Events -> EventBridge"]
+  EVB --> WF["Workflow\n(Step Functions / Lambda)\nvalidate filename/schema\noptional decrypt/DLP"]
+  WF -->|clean| S3C["S3 Clean/Ready\n(bucket or prefix)"]
+  WF -->|failed/quarantine| S3Q["S3 Quarantine\n(restricted access)"]
+  S3C --> DOWN["Downstream\nEKS ingestion jobs\nSnowflake load\nMongo import pipelines"]
+
+  %% CloudTrail -> Sentinel egress path
+  CT["AWS CloudTrail\n(org/account)\nMgmt + S3 data events"] --> CTS3["S3 CloudTrail Log Bucket\n(SSE-KMS)"]
+  CTS3 -->|"new object notification"| SQS["SQS Queue"]
+  SQS -->|"connector pulls/ingests"| SENT["Microsoft Sentinel\nAWS CloudTrail/S3 connector\n(Log Analytics workspace)"]
+
+  %% Link activity in pipeline to CloudTrail
+  TF -. "API activity logged" .-> CT
+  S3L -. "S3 data events" .-> CT
