@@ -1,10 +1,11 @@
 flowchart TB
+  %% ===================== AWS ORG =====================
   subgraph ORG["AWS Organization / Control Tower (Global)"]
     direction TB
     MGMT["Management Account (billing/org root; no workloads)"]
 
     subgraph SEC_OU["OU: Security (Core)"]
-      LOG["Log Archive Account central log storage"]
+      LOG["Log Archive Account central log storage (CloudTrail/Config)"]
       AUD["Audit/Sec Tooling Account Security Hub / GuardDuty / Config (delegated admin)"]
     end
 
@@ -17,7 +18,15 @@ flowchart TB
     POL["Org Guardrails SCPs: region allow-lists per OU baseline configs & tagging"]
   end
 
-  %% ===== EU =====
+  %% ===================== MICROSOFT =====================
+  subgraph MS["Microsoft Integration"]
+    direction TB
+    ENTRA["Microsoft Entra ID (Identity Provider)"]
+    SENT["Microsoft Sentinel (Log Analytics / SIEM)"]
+    SENTNOTE["Sentinel AWS connector: CloudTrail from S3 (+SQS) + optional alerts"]
+  end
+
+  %% ===================== EU =====================
   subgraph EU_OU["OU: EU (GDPR + Healthcare Boundary)"]
     direction TB
     EU_NET["EU Networking Account VPCs/TGW/endpoints (EU only)"]
@@ -29,7 +38,7 @@ flowchart TB
     EU_DATA_OPT["EU Data Platform (Optional) shared lake/warehouse EU-only sharing"]
   end
 
-  %% ===== US =====
+  %% ===================== US =====================
   subgraph US_OU["OU: US (HIPAA/HITRUST Boundary)"]
     direction TB
     US_NET["US Networking Account VPCs/TGW/endpoints (US only)"]
@@ -41,7 +50,7 @@ flowchart TB
     US_DATA_OPT["US Data Platform (Optional) US-only sharing"]
   end
 
-  %% ===== AU =====
+  %% ===================== AU =====================
   subgraph AU_OU["OU: Australia (Healthcare Boundary)"]
     direction TB
     AU_NET["AU Networking Account VPCs/TGW/endpoints (AU only)"]
@@ -52,13 +61,14 @@ flowchart TB
     AU_NONPROD["AU NonProd Account(s) Dev/Test"]
   end
 
-  %% ===== Relationships =====
+  %% ===================== RELATIONSHIPS =====================
   MGMT --> POL
   POL --> EU_OU
   POL --> US_OU
   POL --> AU_OU
 
-  AUD --> LOG
+  AUD -->|"delegated admin"| LOG
+
   EU_DROP -->|"CloudTrail/Config logs"| LOG
   US_DROP -->|"CloudTrail/Config logs"| LOG
   AU_DROP -->|"CloudTrail/Config logs"| LOG
@@ -72,3 +82,9 @@ flowchart TB
   CICD --> EU_APP1
   CICD --> US_APP1
   CICD --> AU_APP1
+
+  %% Microsoft integrations
+  ENTRA -->|"SAML/OIDC federation"| ID
+  LOG -->|"CloudTrail logs via S3 (+SQS)"| SENT
+  AUD -->|"optional alerts/incidents"| SENT
+  SENTNOTE --- SENT
